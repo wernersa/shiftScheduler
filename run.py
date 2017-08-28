@@ -123,7 +123,7 @@ def get_calendars(service):
         calendar_list = service.calendarList().list(pageToken=page_token).execute()
         for calendar_list_entry in calendar_list['items']:
             i += 1
-            print(i, calendar_list_entry['summary'])
+            print(i, calendar_list_entry['id'], calendar_list_entry['summary'])
         page_token = calendar_list.get('nextPageToken')
         if not page_token:
             break
@@ -173,10 +173,13 @@ def get_events(service, selected_calendars):
         #TODO: Exclusion criterias
         if event['summary'] == 'Jobb PSYK':
             purge.append(i)
-            continue
-        if event['transparancy'] == 'transparent':
-            purge.append(i)
-            continue
+
+        try:
+            if event['transparency'] == 'transparent':
+                purge.append(i)
+                continue
+        except:
+            pass
         
         if 'date' not in event['start']:
             
@@ -204,7 +207,7 @@ def get_hourly_penalty(service, events):
     Returns:
         A list of weekdays list of hours penalty.
     """
-    weekdays = [[] for x in xrange(7)]
+    weekdays = [[] for x in range(7)]
     
     for event in events:
         i = 0
@@ -231,8 +234,8 @@ def get_hourly_penalty(service, events):
         weekdays_Counter.append(day_Counter)
     
     #If individual schedules should be relatively weighted. This could be considered to be most utilitaristic as schedules with a high baseline hour count would be much worse off otherwise.
-    largest_count = max(flatten(weekdays_Counter))
-    weekdays_weigthed = [map(lambda y: round(y/float(largest_count)*100,2), x) for x in weekdays_Counter] 
+    largest_count = max([num for elem in weekdays_Counter for num in elem])
+    weekdays_weigthed = [list(map(lambda y: round(y/float(largest_count)*100,2), x)) for x in weekdays_Counter]
     
     return weekdays_weigthed, largest_count
 
@@ -254,7 +257,7 @@ def get_shift_windows(service, hourly_penalty):
     #TODO: for shift_windows in shift_partitions
     
     #As of now, it returns three possible shift setups:
-    return [[[{'penalty':0,'hours':[8,14]},{'penalty':0,'hours':[14,20]},{'penalty':0,'hours':[8,18]}]] for x in xrange(7)]
+    return [[[{'penalty':0,'hours':[8,14]},{'penalty':0,'hours':[14,20]},{'penalty':0,'hours':[8,18]}]] for x in range(7)]
 
 
 
@@ -281,12 +284,12 @@ def main():
     selected_i = None
     while not selected_i:
         try:    
-            selected_i = list(input("Please select the calendar numbers listed above, separated by commas\n"))
+            selected_i = input("Please select the calendar numbers listed above, separated by commas\n").split(",")
         except:
             print("Invalid input.")
     #selected_i = [2, 3, 4, 6, 10]
     
-    selected_calendars = [available_calendars['items'][x-1] for x in selected_i]
+    selected_calendars = [available_calendars['items'][int(x)-1] for x in selected_i]
     print(selected_calendars)
 
     events = get_events(service, selected_calendars)
@@ -312,13 +315,14 @@ def main():
     print("Shift with lowest penalty is preferable:")
     pprint.pprint(shift_windows)
     
-    with open("output.csv", "wb") as f:
+    with open("output.csv", "w", newline='') as f:
         #Zip transposes. Columns is days. Rows is shift-hours.
-        export = zip(*penalty)
-        export.insert(0, WEEKDAY_NAMES)
+        print(penalty)
+        export = list(zip(*[[x for x in range(SHIFT_START,SHIFT_END+1)], *penalty]))
+        export.insert(0, ["", *WEEKDAY_NAMES])
         
         #Export column-named csv, sep=",", decimal="."
-        writer = csv.writer(f)
+        writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         writer.writerows(export) 
     
 if __name__ == '__main__':
