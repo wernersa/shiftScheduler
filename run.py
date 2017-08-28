@@ -9,7 +9,6 @@ Created on Wed Jan 13 15:13:14 2016
 # --- IMPORTS
 # ----------------------
 
-from __future__ import print_function
 import httplib2
 import os
 
