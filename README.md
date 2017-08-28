@@ -1,7 +1,26 @@
 # shiftScheduler
-Simple scheduler for finding office hours least occupied by other events through user Google Calendars, using O.Auth 2.0
+Simple scheduler for finding office hours least occupied by other events through user Google Calendars, using OAuth 2.0
 
 ## Setup
+
+### Requires:
+- Python 3.*
+- One or more Google calendars on a google account
+
+```Shell
+git clone https://github.com/wernersa/shiftScheduler
+cd shiftScheduler
+
+# Optional virtualenv:
+virtualenv venv
+activate venv
+
+pip install -r requirements.txt
+
+python run.py
+```
+
+### Acquiring the OAuth 2.0 client key
 
 Download a `client_secret.json` file from Google's API Console to the scripts folder.
 The following instruction is copied from [Google's API documentation](https://developers.google.com/api-client-library/python/auth/web-app)
@@ -18,7 +37,7 @@ After creating your credentials, download the client_secrets.json file and secur
 > > Important: Do not store the client_secrets.json file in a publicly-accessible location. In addition, if you share the source code to your application—for example, on GitHub—store the client_secrets.json file outside of your source tree to avoid inadvertently sharing your client credentials.
 
 ## Script Output
-Parses your selected google calendars and outputs a `.csv` file with your weekday availability. The scripts weigths availability relative to the week hour you're least available, making a range from 100 (least available) to 0 (completely free).
+Parses your selected google calendars and outputs a `.csv` file with your weekday availability. The scripts weights availability relative to the week hour you're least available, making a range from 100 (least available) to 0 (completely free).
 
 Example output:
 
